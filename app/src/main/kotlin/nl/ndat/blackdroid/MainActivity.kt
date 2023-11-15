@@ -23,11 +23,20 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.set
 import androidx.core.view.setPadding
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player.REPEAT_MODE_ALL
+import androidx.media3.common.Player.RepeatMode
+import androidx.media3.datasource.DataSpec
+import androidx.media3.datasource.RawResourceDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.ui.PlayerView
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayout
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class MainActivity : ComponentActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -67,7 +76,12 @@ class MainActivity : ComponentActivity() {
 						layoutParams = LinearLayout.LayoutParams(100.dip, 100.dip)
 						holder.addCallback(object : SurfaceHolder.Callback {
 							override fun surfaceCreated(holder: SurfaceHolder) = draw(holder)
-							override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) =
+							override fun surfaceChanged(
+								holder: SurfaceHolder,
+								format: Int,
+								width: Int,
+								height: Int
+							) =
 								draw(holder)
 
 							override fun surfaceDestroyed(holder: SurfaceHolder) = draw(holder)
@@ -79,7 +93,9 @@ class MainActivity : ComponentActivity() {
 								}
 
 								if (color is Int) canvas.drawColor(color)
-								else if (color is Long && Build.VERSION.SDK_INT >= 29) canvas.drawColor(color)
+								else if (color is Long && Build.VERSION.SDK_INT >= 29) canvas.drawColor(
+									color
+								)
 								else canvas.drawColor(android.graphics.Color.RED)
 
 								holder.unlockCanvasAndPost(canvas)
@@ -135,6 +151,23 @@ class MainActivity : ComponentActivity() {
 							.background(Color.Black)
 							.size(100.dp, 100.dp)
 					) {}
+				}
+			})
+
+			addSpacerView()
+
+			// ExoPlayer HDR video
+			addView(PlayerView(context).apply {
+				layoutParams = LinearLayout.LayoutParams(100.dip, 100.dip)
+
+				player = ExoPlayer.Builder(context).build().apply {
+					repeatMode = REPEAT_MODE_ALL
+
+					volume = 0f
+
+					setMediaItem(MediaItem.fromUri(RawResourceDataSource.buildRawResourceUri(R.raw.sample_video)))
+					prepare()
+					play()
 				}
 			})
 		})
